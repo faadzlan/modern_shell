@@ -280,26 +280,6 @@ oku() { okular $1 & disown }
 opa() { for file in ./*.pdf; do mupdf "$file"; done }
 
 # ----------------------------------------------------------------------------
-# AI Assistant Shortcuts
-# ----------------------------------------------------------------------------
-
-# Quick access to AI CLI tools
-alias k='kimi'        # Kimi CLI
-alias g='gemini'      # Gemini CLI  
-alias c='claude'      # Claude CLI
-
-# ----------------------------------------------------------------------------
-# Google Drive Sync Aliases
-# ----------------------------------------------------------------------------
-
-# Manual mount aliases (if auto-mount fails or you need to remount)
-alias mntgdu='sudo mount -t drvfs H: /mnt/h'
-alias mntgds='sudo mount -t drvfs G: /mnt/g'
-
-# Sync to Google Drive (runs in background)
-alias sync-gdrive='cd ~/Documents && nohup ./sync-to-gdrive.sh &'
-
-# ----------------------------------------------------------------------------
 # 10. MISCELLANEOUS SETTINGS
 # ----------------------------------------------------------------------------
 
