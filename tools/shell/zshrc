@@ -57,6 +57,9 @@ zinit light Aloxaf/fzf-tab
 # Additional completions
 zinit light zsh-users/zsh-completions
 
+# Note: OMZ plugins (git, ubuntu) are loaded above with lazy loading
+# This means 0ms startup impact - they load when you first use git/apt
+
 # ----------------------------------------------------------------------------
 # 3. AUTOSUGGESTIONS CONFIGURATION (PS7-like ghost text)
 # ----------------------------------------------------------------------------
@@ -251,30 +254,15 @@ if command -v zoxide &> /dev/null; then
   alias cdi='zi'  # Interactive cd with fzf
 fi
 
-# Git shortcuts
-alias g='git'
-alias ga='git add'
-alias gc='git commit'
-alias gco='git checkout'
-alias gd='git diff'
-alias gds='git diff --staged'
-alias gl='git log --oneline --graph --decorate'
-alias gp='git push'
-alias gs='git status'
+# ----------------------------------------------------------------------------
+# 9. ALIASES
+# ----------------------------------------------------------------------------
+# Load aliases from separate file (cleaner, easier to maintain)
+# For custom aliases, use ~/.zshrc.local (not tracked by git)
 
-# Modern tools
-alias grep='grep --color=auto'
-alias fgrep='fgrep --color=auto'
-alias egrep='egrep --color=auto'
-alias mkdir='mkdir -pv'
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-
-# Safety
-alias cp='cp -i'
-alias mv='mv -i'
-alias rm='rm -i'
+# Resolve path to aliases file (works whether zshrc is symlinked or not)
+ZSH_CONFIG_DIR="${${(%):-%x}:A:h}"
+[[ -f "$ZSH_CONFIG_DIR/aliases.zsh" ]] && source "$ZSH_CONFIG_DIR/aliases.zsh"
 
 # GUI App Launchers (run in background)
 emc() { emacs $1 & disown }

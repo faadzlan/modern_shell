@@ -11,7 +11,8 @@ A cross-platform Zsh configuration that replicates PowerShell 7's best features:
 ## Quick Start
 
 ```bash
-# 1. Clone/copy this project to ~/Documents/modern_shell
+# 1. Clone this project anywhere you prefer (example: ~/Documents/modern_shell)
+git clone https://github.com/YOUR_USERNAME/modern_shell.git ~/Documents/modern_shell
 cd ~/Documents/modern_shell
 
 # 2. Run the installer
@@ -23,6 +24,8 @@ zsh
 # 4. (Optional) Set as default shell
 chsh -s $(which zsh)
 ```
+
+**Note:** The project can be cloned to any directory. `~/Documents` is just an example - use `~/projects`, `~/.config`, or wherever you prefer.
 
 ## What You Get
 
@@ -124,23 +127,25 @@ export FZF_DEFAULT_OPTS="--color=bg+:#363a4f,..."
 ## Project Structure
 
 ```
-~/Documents/modern_shell/
-├── AGENTS.md              # Project context for AI agents
-├── FLIGHT_LOG.org         # Decisions, lessons learned
-├── README.md              # This file
-├── documentation/
-│   ├── ps7_psreadline_guide.org    # PS7 feature reference
-│   └── zsh_modern_terminal_guide.md # Detailed Zsh guide
-└── tools/shell/
-    ├── zshrc              # Main configuration
-    └── install_zsh_modern.sh  # Automated installer
+modern_shell/                 # Can be cloned anywhere
+├── AGENTS.md                 # Project context for AI agents
+├── FLIGHT_LOG.org            # Decisions, lessons learned
+├── README.md                 # This file
+├── zshrc.local.example       # Template for local secrets/API keys
+├── tools/shell/
+│   ├── zshrc                 # Main configuration
+│   ├── aliases.zsh           # Curated aliases (git, apt, etc.)
+│   └── install_zsh_modern.sh # Automated installer
+└── documentation/
+    ├── ps7_psreadline_guide.org     # PS7 feature reference
+    └── zsh_modern_terminal_guide.md # Detailed Zsh guide
 ```
 
 ## Updating
 
 ```bash
-# Pull latest changes
-cd ~/Documents/modern_shell
+# Pull latest changes (adjust path to where you cloned)
+cd ~/Documents/modern_shell  # or wherever you put it
 git pull
 
 # Re-run installer to update dependencies
@@ -156,7 +161,7 @@ source ~/.zshrc
 ```bash
 # Check startup time
 time zsh -i -c exit
-# Should be < 200ms
+# Should be < 1000ms (with full plugin set)
 ```
 
 ### Missing Icons

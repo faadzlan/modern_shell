@@ -18,21 +18,24 @@ Create a cross-platform, modern terminal experience replicating PowerShell 7's b
 ## Project Structure
 
 ```
-~/Documents/modern_shell/
+modern_shell/                    # Can be cloned anywhere
 ├── AGENTS.md                    # This file
 ├── FLIGHT_LOG.org               # Running log of setup decisions
 ├── README.md                    # Quick start guide
-├── documentation/
-│   ├── ps7_psreadline_guide.org # PS7 features reference
-│   └── zsh_modern_terminal_guide.md  # Implementation details
-├── tools/
-│   └── shell/
-│       ├── zshrc                # Main configuration
-│       └── install_zsh_modern.sh # Automated installer
-└── configs/                     # Symlink-ready dotfiles
-    └── zsh/
-        └── .zshrc -> ../../tools/shell/zshrc
+├── zshrc.local.example          # Template for API keys/secrets
+├── .gitignore                   # Excludes .zshrc.local
+├── tools/shell/
+│   ├── zshrc                    # Main configuration
+│   ├── aliases.zsh              # Curated aliases (git, apt, etc.)
+│   └── install_zsh_modern.sh    # Automated installer
+├── configs/zsh/
+│   └── .zshrc -> ../../tools/shell/zshrc
+└── documentation/
+    ├── ps7_psreadline_guide.org
+    └── zsh_modern_terminal_guide.md
 ```
+
+**Note:** This project can be cloned to any directory (`~/Documents`, `~/Projects`, `~/.config`, etc.). The examples use `~/Documents/modern_shell` but it's not required.
 
 ## Key Design Decisions
 
