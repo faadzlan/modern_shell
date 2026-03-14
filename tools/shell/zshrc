@@ -8,7 +8,8 @@
 # ----------------------------------------------------------------------------
 
 # Suppress warning about console output (keychain produces output during init)
-# This is needed because we use keychain for SSH agent in WSL section
+# This MUST be set before sourcing instant prompt
+# Setting to 'quiet' suppresses the warning while keeping fast startup
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 
 # Enable Powerlevel10k instant prompt (speeds up startup)
@@ -334,13 +335,13 @@ if [[ -n "$WSL_DISTRO_NAME" ]] || grep -q Microsoft /proc/version 2>/dev/null; t
   
   # Mount Google Drives (H: and G:) if not already mounted
   # These are your Windows drives accessible in WSL
-  mountpoint -q /mnt/h 2>/dev/null || sudo mount -t drvfs H: /mnt/h 2>/dev/null
-  mountpoint -q /mnt/g 2>/dev/null || sudo mount -t drvfs G: /mnt/g 2>/dev/null
+  # Note: sudo password prompt is shown if needed (no stderr redirect)
+  mountpoint -q /mnt/h 2>/dev/null || sudo mount -t drvfs H: /mnt/h
+  mountpoint -q /mnt/g 2>/dev/null || sudo mount -t drvfs G: /mnt/g
   
-  # Start keychain SSH agent (suppress p10k warning - password prompt still works)
-  # The warning appears because keychain produces output during init
+  # Start keychain SSH agent (--quiet suppresses banner, password prompt still works)
   if command -v keychain &> /dev/null && [[ -f ~/.ssh/id_ed25519 ]]; then
-    eval $(keychain --eval ~/.ssh/id_ed25519)
+    eval $(keychain --eval --quiet ~/.ssh/id_ed25519)
   fi
 fi
 
