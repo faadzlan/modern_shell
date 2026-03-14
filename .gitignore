@@ -1,0 +1,49 @@
+# ============================================================================
+# Git Ignore for Modern Shell Setup
+# ============================================================================
+
+# Local configuration files (contains secrets, API keys, machine-specific settings)
+*.local
+.zshrc.local
+.bashrc.local
+
+# Backup files
+*~
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+nohup.out
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
+
+# Zsh/zinit related (auto-generated)
+.zcompdump*
+.zsh_history
+.zsh_sessions/

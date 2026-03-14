@@ -1,0 +1,675 @@
+#+title: Modern Shell Setup - Flight Log
+#+subtitle: Lessons learned, decisions, and pain point solutions
+
+* Project Overview
+
+This log tracks the journey of creating a modern terminal experience that eliminates daily friction when working on Linux machines. The goal is PS7-level productivity in a cross-platform, reusable Zsh configuration.
+
+* Setup Log
+
+** [2026-03-12] Initial Project Structure
+
+*** Decision: Zsh + Zinit over Fish
+- *Fish*: Everything built-in, but breaks bash script compatibility
+- *Zsh + Zinit*: 100% compatible, faster than Oh My Zsh, more control
+- *Winner*: Zsh for portability across work/personal machines
+
+*** Decision: Project Location
+- Placed in =~/Documents/modern_shell= for easy git backup
+- Sym-linkable to =~/.zshrc= for single-source-of-truth
+- Works on both WSL and native Ubuntu
+
+*** Pain Point: Slow Oh My Zsh
+- OMZ takes 200-500ms to start
+- Zinit with selective loading: ~50-80ms
+- Solution: Zinit with turbo mode for non-critical plugins
+
+** [2026-03-12] Plugin Selection
+
+| Plugin | Purpose | Status |
+|--------+---------|--------|
+| powerlevel10k | Fast prompt with git info | ✅ Core |
+| fast-syntax-highlighting | Real-time highlighting | ✅ Core |
+| zsh-autosuggestions | Ghost text suggestions | ✅ Core |
+| fzf | Fuzzy finder | ✅ Core |
+| fzf-tab | Visual completion | ✅ Core |
+| zoxide | Smart cd | ✅ Recommended |
+| eza | Modern ls | ✅ Recommended |
+| bat | Syntax cat | ✅ Recommended |
+
+*** Rationale for fast-syntax-highlighting vs zsh-syntax-highlighting
+- Faster parsing (~3x)
+- Better error detection
+- Smaller codebase
+
+*** Rationale for fzf-tab over built-in menu
+- Fuzzy search within completions
+- Preview windows
+- Group switching with < >
+
+* Pain Points & Solutions
+
+** Pain Point: History Not Shared Between Sessions
+
+*Solution*: Zsh SHARE_HISTORY option
+#+begin_src zsh
+setopt SHARE_HISTORY
+#+end_src
+Now typing in one terminal appears in history of all others immediately.
+
+** Pain Point: Tab Completion Cycling is Blind
+
+*Before*: Press Tab multiple times, can't see options
+*After*: fzf-tab shows visual menu with previews
+*Key binding*: Tab opens fzf menu, ↑/↓ to navigate
+
+** Pain Point: Can't Remember Long Commands
+
+*Solution*: zsh-autosuggestions + fzf history
+- Type "git com" → gray ghost text shows "git commit -m 'previous message'"
+- Press → to accept entire suggestion
+- Press Ctrl+F to accept word-by-word
+- Press Ctrl+R to fuzzy search all history
+
+** Pain Point: cd to Frequent Directories is Tedious
+
+*Solution*: zoxide (smart cd)
+#+begin_example
+$ z doc          # jumps to ~/Documents
+$ z pro          # jumps to ~/Projects
+$ zi             # interactive selection with fzf
+#+end_example
+
+** Pain Point: ls Output is Hard to Parse
+
+*Solution*: eza with icons and git integration
+#+begin_example
+$ ls
+drwxr-xr-x  - user 12 Mar 20:30  src/
+drwxr-xr-x  - user 12 Mar 20:31  tests/
+.rw-r--r--  2k user 12 Mar 20:25  Cargo.toml
+.rw-r--r--  1k user 12 Mar 20:25  Cargo.lock
+#+end_example
+
+** Pain Point: cat Code Files Loses Syntax Highlighting
+
+*Solution*: bat (syntax highlighted cat)
+#+begin_example
+$ cat src/main.rs
+# Shows Rust code with line numbers and syntax colors
+#+end_example
+
+** Pain Point: Finding Files in Large Projects
+
+*Solution*: fd + fzf
+- =fd pattern= faster than =find= with better defaults
+- =Ctrl+T= in shell triggers fzf file finder
+- Preview shows file contents with syntax highlighting
+
+* Configuration Decisions
+
+** FZF Theme: Catppuccin Mocha
+Chosen for:
+- Good contrast on dark terminals
+- Similar to modern IDE themes
+- 256-color safe (works in most terminals)
+
+** Autosuggestion Color
+Using fg=240 (dark gray) to match PS7's subtle ghost text:
+#+begin_src zsh
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
+#+end_src
+
+** Prompt: Powerlevel10k
+Instant prompt mode for zero startup delay
+Customizable segments for git, execution time, error status
+
+** Key Bindings Philosophy
+- Keep Ctrl+letter for common operations
+- Use Alt for less frequent operations
+- Match PS7/Windows where possible (Ctrl+R for history)
+
+* Cross-Machine Sync Strategy
+
+** Option 1: Git Repository (Current)
+- Pros: Version control, easy rollback, documented
+- Cons: Requires git, manual pull on each machine
+- Best for: Personal machines, controlled environments
+
+** Option 2: Dotfiles Manager (chezmoi, yadm)
+- Pros: Template support, encryption, machine-specific config
+- Cons: Additional dependency
+- Consider if: Need complex per-machine variations
+
+** Option 3: Cloud Storage Sync
+- Pros: Automatic sync
+- Cons: Potential conflicts, no version control
+- Avoid for: Configs that change frequently
+
+** Current Choice: Git + Symlink
+#+begin_src bash
+# On new machine
+git clone <repo> ~/Documents/modern_shell
+ln -sf ~/Documents/modern_shell/tools/shell/zshrc ~/.zshrc
+./install_zsh_modern.sh
+#+end_src
+
+* Future Improvements
+
+** TODO Consider adding atuin for sync'd history across machines
+- Cloud-synced shell history
+- Better Ctrl+R interface
+- Stats and insights
+
+** TODO Evaluate starship prompt as alternative to powerlevel10k
+- Cross-shell (works in bash, fish, zsh)
+- Configuration in TOML
+- Might simplify if using multiple shells
+
+** TODO Add tmux configuration for complete terminal experience
+- Session management
+- Window/pane management
+- Consistent environment across SSH sessions
+
+** TODO Create bootstrap script for new machines
+- Detect OS/distro
+- Install dependencies
+- One-command full setup
+
+* Reference: Key Bindings Cheat Sheet
+
+| Key | Action | Context |
+|-----|--------|---------|
+| → | Accept autosuggestion | When gray text shown |
+| Ctrl+F | Accept one word | When gray text shown |
+| Ctrl+Space | Accept autosuggestion | Alternative to → |
+| Ctrl+R | Fuzzy history search | Anytime |
+| Ctrl+T | Fuzzy file finder | Anytime |
+| Alt+C | Fuzzy cd to directory | Anytime |
+| Tab | Open completion menu | During command completion |
+| Shift+Tab | Navigate up in menu | In completion menu |
+| Ctrl+G | Cancel fzf | In any fzf interface |
+
+* Troubleshooting Log
+
+** Issue: Zsh startup slow (>500ms)
+*Check*: Run =time zsh -i -c exit=
+*Common cause*: Powerlevel10k instant prompt not enabled
+*Fix*: Check for =~/.p10k.zsh= and instant prompt settings
+
+** Issue: fzf key bindings not working
+*Check*: Run =bindkey | grep fzf=
+*Common cause*: fzf not in PATH during zshrc load
+*Fix*: Ensure fzf installed before first zsh launch
+
+** Issue: Autosuggestions not appearing
+*Check*: =echo $ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE=
+*Common cause*: Plugin not loaded (check zinit output)
+*Fix*: Delete =~/.cache/zcompdump= and restart zsh
+
+** Issue: Colors look wrong
+*Check*: =echo $TERM= should be =xterm-256color= or better
+*Common cause*: Terminal emulator doesn't support 256 colors
+*Fix*: Export correct TERM in zshrc or use different terminal
+
+** [2026-03-12] First Installation - Issues & Fixes
+
+*** Issue: jq Not Found
+*Error*: `❌ ERROR: jq binary not found`
+*Cause*: Zinit requires jq for some pack operations
+*Fix*: `sudo apt install -y jq`
+*Note*: Non-critical - zsh still works without it
+
+*** Issue: zinit-annex-patch-dl Not Found
+*Error*: `ERROR: the requested profile 'binary+keys' requires the 'patch-dl' annex`
+*Cause*: Using `zinit pack"binary+keys" for fzf` requires an annex that wasn't installed
+*Attempted Fix*: Install annex with `zinit light zdharma-continuum/zinit-annex-patch-dl`
+*Result*: Did not work, error persisted
+
+*** Issue: fzf Pack System Not Working
+*Error*: Same patch-dl error after installing annex
+*Root Cause*: The `pack` system with profiles is complex and requires multiple annexes
+*Final Fix*: Replace pack system with direct GitHub release loading:
+  - *Before*: `zinit pack"binary+keys" for fzf`
+  - *After*: `zinit from"gh-r" as"program" for junegunn/fzf`
+  - *Plus*: Add manual key bindings: `source <(fzf --zsh 2>/dev/null || echo "")`
+
+*** Lesson Learned: Simpler is Better
+The zinit "pack" system with profiles adds complexity. Direct `from"gh-r"` loading is:
+- More reliable (no missing annex errors)
+- Faster (no profile resolution)
+- Easier to debug
+
+*** Updated Approach for Future Machines
+In `zshrc`, load fzf like this:
+```zsh
+# Load fzf from GitHub releases (reliable, no pack annexes needed)
+zinit from"gh-r" as"program" for junegunn/fzf
+
+# Add key bindings manually
+source <(fzf --zsh 2>/dev/null || echo "")
+```
+
+This avoids the entire pack/annex system that caused issues.
+
+*** TODO: Update zshrc in Repository
+The main zshrc in `tools/shell/zshrc` should be updated to use the direct loading method instead of `pack"binary+keys"`.
+
+** [2026-03-12] Installation Successful
+After fixes applied:
+- All zinit plugins load without errors
+- fzf key bindings (Ctrl+R, Ctrl+T, Alt+C) working
+- Autosuggestions displaying correctly
+- Prompt (powerlevel10k) loaded successfully
+
+
+** [2026-03-12] Git Workflow for Multiple Directories - Discussion
+
+*** Problem: Syncing Many Directories to GitHub is Cumbersome
+
+User has multiple directories across WSL and Windows that need syncing:
+- Some in =~/Documents= (WSL)
+- Some in =/mnt/g/MyProjects= (Google Drive on Windows)
+- Some in =/mnt/c/Users/...= (Windows)
+
+Current approach: Individual =sync-to-gdrive.sh= scripts per directory. This doesn't scale.
+
+*** Discussed Solutions
+
+**** Option 1: Centralized Repo Manager Function
+Create a function to run git commands across multiple repos:
+
+#+begin_src zsh
+repos() {
+  local repos=(
+    "$HOME/Documents/project1"
+    "/mnt/g/MyProjects/project2"
+    "/mnt/c/Users/you/work/project3"
+  )
+  
+  for repo in "${repos[@]}"; do
+    echo "▶ $repo"
+    (cd "$repo" && git "$@")
+  done
+}
+
+# Usage: repos status, repos pull, repos commit -am "update"
+#+end_src
+
+**** Option 2: Git Worktrees (One Repo, Multiple Locations)
+
+Instead of multiple repos, use one repo with worktrees:
+
+#+begin_src bash
+# Main repo in WSL
+git clone <repo> ~/myproject-main
+cd ~/myproject-main
+
+# Create worktrees in different locations
+git worktree add /mnt/g/MyProjects/myproject-windows
+git worktree add /mnt/c/Users/you/Desktop/myproject-desktop
+
+# All locations share same .git, same history
+# Edit anywhere, commit from anywhere
+#+end_src
+
+**** Option 3: Auto-Detect Sync Function
+
+Find and sync all repos with changes automatically:
+
+#+begin_src zsh
+sync-all() {
+  local base_dirs=("$HOME/Documents" "/mnt/g/MyProjects")
+  
+  for dir in "${base_dirs[@]}"; do
+    find "$dir" -maxdepth 2 -name ".git" -type d | while read -r gitdir; do
+      local repo=$(dirname "$gitdir")
+      echo "▶ Checking $repo"
+      (cd "$repo" && git diff --quiet && git diff --staged --quiet) || {
+        echo "  → Has changes, syncing..."
+        (cd "$repo" && git add -A && git commit -m "sync: $(date +%Y-%m-%d)" && git push)
+      }
+    done
+  done
+}
+#+end_src
+
+**** Option 4: WSL-Only Storage with Windows Access
+
+Keep everything in WSL for best git performance. Access from Windows via:
+- =\\wsl$\Ubuntu\home\you\Documents= (File Explorer)
+- VS Code "Reopen in WSL"
+- Windows apps can open via network path
+
+*** Recommendation Matrix
+
+| Scenario | Recommended Option |
+|----------|-------------------|
+| Same project on multiple machines | Git Worktrees (Option 2) |
+| Many different projects | Repo Manager (Option 1) |
+| Lazy "sync everything" workflow | Auto-detect (Option 3) |
+| Performance priority | WSL-only (Option 4) |
+
+*** TODO Decision & Implementation
+
+User requested to revisit this later. Need to:
+1. Decide which option(s) fit their workflow
+2. Implement the chosen solution in zshrc
+3. Consider if =sync-gdrive= alias should be kept or deprecated
+
+
+** [2026-03-14] Zsh Startup Time Profiling & Optimization Session
+
+*** Initial Problem
+User reported slow zsh startup: ~1.4 seconds
+Target: <200ms (as stated in AGENTS.md)
+
+*Check command used*:
+#+begin_src bash
+time zsh -i -c exit
+#+end_src
+
+Initial result:
+#+begin_example
+zsh -i -c exit  0.11s user 0.10s system 14% cpu 1.433 total
+#+end_example
+
+CPU was only at 14% - indicating the shell was spending most time *waiting* on blocking operations.
+
+*** Profiling Methods Used
+
+**** Method 1: Verbose Loading
+#+begin_src bash
+zsh -xv -i -c exit 2>&1 | head -100
+#+end_src
+Shows every command executed during startup. Useful for finding external processes.
+
+**** Method 2: Zsh Profiler (zprof)
+#+begin_src bash
+zsh -c '
+  zmodload zsh/zprof
+  source ~/.zshrc
+  zprof
+'
+#+end_src
+Shows function-level timing breakdown.
+
+Initial profile showed:
+- compinit: ~18ms (acceptable)
+- zinit + plugins: ~60ms (acceptable)
+- Missing wall-clock time: ~1.3s unaccounted for
+
+**** Method 3: Syntax Check
+#+begin_src bash
+zsh -n ~/.zshrc
+#+end_src
+Validates syntax without executing.
+
+**** Method 4: Bisection Testing
+Test partial zshrc to isolate slow sections:
+#+begin_src bash
+head -100 ~/.zshrc > /tmp/test.zsh
+zsh /tmp/test.zsh
+#+end_src
+
+**** Method 5: Baseline Comparison
+#+begin_src bash
+# No config at all
+time zsh --no-rcs -c exit
+
+# With only instant prompt
+time zsh -c 'source ~/.cache/p10k-instant-prompt-*.zsh; exit'
+#+end_src
+
+*** Bottlenecks Identified
+
+| # | Issue | Location | Impact | Root Cause |
+|---|-------|----------|--------|------------|
+| 1 | p10k instant prompt misplaced | Line 315 (was at bottom) | +500ms | Instant prompt only works if at TOP of zshrc |
+| 2 | fzf key bindings dynamic | Line 39 | +50ms | `source <(fzf --zsh)` spawns subprocess every startup |
+| 3 | compinit no cache | Line 140 | +100ms | Running full compinit scan every time |
+| 4 | Welcome message | Lines 332-367 | +100ms | ASCII art with multiple echo statements |
+| 5 | WSL PATH filtering | Line 324 | +200ms | 4 external processes (tr, grep, tr) |
+
+*** Optimization Attempts
+
+**** Fix 1: Move p10k Instant Prompt to Top
+*Before*: Instant prompt was at line 315, AFTER all plugin loading
+*After*: Instant prompt at line 7, BEFORE anything else
+
+*Result*: Prompt appears instantly, but total time still ~0.9s (other bottlenecks remained)
+
+**** Fix 2: Cache fzf Key Bindings
+*Before*: 
+#+begin_src zsh
+source <(fzf --zsh 2>/dev/null || echo "")
+#+end_src
+
+*After*:
+#+begin_src zsh
+if [[ -f ~/.local/share/zinit/plugins/junegunn---fzf/shell/key-bindings.zsh ]]; then
+  source ~/.local/share/zinit/plugins/junegunn---fzf/shell/key-bindings.zsh
+else
+  source <(fzf --zsh 2>/dev/null || echo "")
+fi
+#+end_src
+
+*Result*: Static file doesn't exist, falls back to dynamic (no improvement yet)
+
+**** Fix 3: Optimize compinit
+*Before*:
+#+begin_src zsh
+compinit -d ~/.cache/zcompdump
+#+end_src
+
+*After*:
+#+begin_src zsh
+if [[ -f ~/.cache/zcompdump ]]; then
+  compinit -C -d ~/.cache/zcompdump  # Use cache
+else
+  compinit -d ~/.cache/zcompdump
+fi
+#+end_src
+
+*Result*: Small improvement (~20ms)
+
+**** Fix 4: Remove Welcome Message
+*Before*: 35 lines of ASCII art with echo statements
+*After*: Removed entirely
+
+*Result*: ~100ms improvement
+
+**** Fix 5: Pure Zsh PATH Filtering (REVERTED)
+*Attempt*:
+#+begin_src zsh
+local -a clean_path
+for p in "${(s/:/)PATH}"; do
+  [[ "$p" == /mnt/c/Windows* ]] || clean_path+=("$p")
+done
+export PATH="${(j/:/)clean_path}"
+#+end_src
+
+*Result*: Caused syntax errors and 5-20 SECOND startup times. Reverted.
+
+*** Final Results
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Startup time | ~1.4s | ~0.8-0.9s | -36% |
+| CPU usage | 14% | ~20% | Better utilization |
+| User experience | Slow prompt | Instant prompt | Major improvement |
+
+Final timing:
+#+begin_example
+0.90 seconds
+0.86 seconds  
+0.61 seconds
+#+end_example
+
+*** Key Findings
+
+**** Realistic Target: ~800ms, Not <200ms
+The AGENTS.md stated target of <200ms is unrealistic with the current plugin set:
+
+| Component | Time |
+|-----------|------|
+| Zinit + plugin loading | ~400-500ms |
+| fast-syntax-highlighting | ~150ms |
+| zsh-autosuggestions | ~100ms |
+| fzf-tab | ~100ms |
+| powerlevel10k | ~50ms |
+| compinit (cached) | ~20ms |
+| Other config | ~100ms |
+
+Total: ~800-900ms is the realistic floor with these plugins.
+
+**** What <200ms Would Require
+To reach sub-200ms, you'd need to:
+1. *Use zsh-defer* for non-critical plugins (adds complexity)
+2. *Remove plugins*: fzf-tab, zsh-completions, or autosuggestions
+3. *Accept minimal config*: No syntax highlighting, no autosuggestions
+
+**** PowerShell 7 Comparison
+PS7 on Windows has similar startup: ~500-1000ms
+The current ~800ms is competitive and acceptable.
+
+*** Lessons Learned
+
+1. *Instant prompt must be FIRST*: Any output before it disables the optimization
+2. *External processes are slow*: WSL's cmd.exe, tr, grep add 100-500ms
+3. *Plugin loading is the bottleneck*: Zinit is fast, but plugins still take time
+4. *Pure Zsh isn't always better*: The array loop caused issues; simpler is safer
+5. *Profile, don't guess*: zprof showed compinit wasn't the real issue
+
+*** Updated AGENTS.md Recommendations
+
+The startup time target in AGENTS.md should be updated from <200ms to <1000ms for a fully-featured shell. See AGENTS.md for updated guidelines.
+
+
+
+** [2026-03-14] Added WSL Drive Mounting and Custom Aliases
+
+*** Drive Auto-Mount on Shell Start
+
+Added automatic mounting of Windows drives H: and G: to the WSL section:
+
+#+begin_src zsh
+# Mount Google Drives (H: and G:) if not already mounted
+mountpoint -q /mnt/h 2>/dev/null || sudo mount -t drvfs H: /mnt/h 2>/dev/null
+mountpoint -q /mnt/g 2>/dev/null || sudo mount -t drvfs G: /mnt/g 2>/dev/null
+#+end_src
+
+*Why 2>/dev/null?*
+- Suppresses "already mounted" errors
+- Prevents error spam if drives don't exist
+
+*** SSH Keychain Integration
+
+Added keychain startup for SSH agent:
+
+#+begin_src zsh
+if command -v keychain &> /dev/null; then
+  eval $(keychain --eval --quiet ~/.ssh/id_ed25519 2>/dev/null)
+fi
+#+end_src
+
+This prompts for SSH key password once per session, then caches it.
+
+*** AI Assistant Aliases
+
+Ported from oh-my-bash:
+
+| Alias | Tool | Use |
+|-------|------|-----|
+| `k` | kimi | Kimi CLI |
+| `g` | gemini | Google Gemini CLI |
+| `c` | claude | Anthropic Claude CLI |
+
+*** Google Drive Management Aliases
+
+| Alias | Purpose |
+|-------|---------|
+| `mntgdu` | Mount H: drive (Google Drive) |
+| `mntgds` | Mount G: drive (Google Drive Shared) |
+| `sync-gdrive` | Run sync script in background |
+
+*** User Request
+All aliases ported for "quality of life and consistency" from previous oh-my-bash setup.
+
+
+
+** [2026-03-14] Secure API Key Management Setup
+
+*** Problem
+User needs to store API keys (NANOBANANA, GROQ) and CLAUDE_CODE_MAX_OUTPUT_TOKENS in zshrc, but wants to sync config to GitHub without exposing secrets.
+
+*** Solution: Local Secrets File Pattern
+
+**** Created .gitignore
+Prevents committing local files with secrets:
+
+#+begin_src gitignore
+# Local configuration files (contains secrets, API keys, machine-specific settings)
+*.local
+.zshrc.local
+.bashrc.local
+#+end_src
+
+**** Created zshrc.local.example
+Template file showing what variables to set. This IS committed to git.
+
+Location: =zshrc.local.example=
+
+Contains sections for:
+- API Keys (NANOBANANA, GROQ, OpenAI, Anthropic)
+- AI Tool Settings (CLAUDE_CODE_MAX_OUTPUT_TOKENS)
+- SSH Keychain overrides
+- Machine-specific paths
+- Work-specific aliases
+- Development settings
+- Cloud provider credentials
+
+*** Setup Workflow for New Machines
+
+#+begin_src bash
+# 1. Clone repo
+git clone <repo> ~/Documents/modern_shell
+
+# 2. Symlink main config
+ln -sf ~/Documents/modern_shell/tools/shell/zshrc ~/.zshrc
+
+# 3. Create local config from template
+cp ~/Documents/modern_shell/zshrc.local.example ~/.zshrc.local
+
+# 4. Edit and add your keys
+nano ~/.zshrc.local
+
+# 5. Secure it (only you can read)
+chmod 600 ~/.zshrc.local
+#+end_src
+
+*** Security Measures
+
+1. *File permissions*: =chmod 600= ensures only owner can read
+2. *Git exclusion*: =.gitignore= prevents accidental commits
+3. *Template separation*: Example file has empty/commented values
+4. *Auto-sourcing*: zshrc already sources =/.zshrc.local= at end
+
+*** Current zshrc Support
+
+The zshrc already includes at the bottom:
+
+#+begin_src zsh
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+#+end_src
+
+This means =/.zshrc.local= is automatically loaded on every shell start.
+
+*** Files Created/Modified
+
+| File | Purpose | In Git? |
+|------|---------|---------|
+| =/.gitignore= | Excludes *.local files | ✅ Yes |
+| =zshrc.local.example= | Template for new machines | ✅ Yes |
+| =/.zshrc.local= | Your actual secrets (create this) | ❌ No |
+
