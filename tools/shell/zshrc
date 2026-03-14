@@ -7,6 +7,10 @@
 # 0. POWERLEVEL10K INSTANT PROMPT (MUST BE FIRST)
 # ----------------------------------------------------------------------------
 
+# Suppress warning about console output (keychain produces output during init)
+# This is needed because we use keychain for SSH agent in WSL section
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+
 # Enable Powerlevel10k instant prompt (speeds up startup)
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
@@ -333,9 +337,10 @@ if [[ -n "$WSL_DISTRO_NAME" ]] || grep -q Microsoft /proc/version 2>/dev/null; t
   mountpoint -q /mnt/h 2>/dev/null || sudo mount -t drvfs H: /mnt/h 2>/dev/null
   mountpoint -q /mnt/g 2>/dev/null || sudo mount -t drvfs G: /mnt/g 2>/dev/null
   
-  # Start keychain SSH agent (asks for SSH key password once per session)
-  if command -v keychain &> /dev/null; then
-    eval $(keychain --eval --quiet ~/.ssh/id_ed25519 2>/dev/null)
+  # Start keychain SSH agent (suppress p10k warning - password prompt still works)
+  # The warning appears because keychain produces output during init
+  if command -v keychain &> /dev/null && [[ -f ~/.ssh/id_ed25519 ]]; then
+    eval $(keychain --eval ~/.ssh/id_ed25519)
   fi
 fi
 
