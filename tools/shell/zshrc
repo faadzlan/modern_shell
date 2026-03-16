@@ -252,6 +252,10 @@ fi
 # Ensure ~/.local/bin is in PATH (uv installs tools here)
 export PATH="$HOME/.local/bin:$PATH"
 
+# Add npm-global bin for WSL-installed npm packages (gemini-cli, etc.)
+# This must come before Windows paths to avoid slow Windows filesystem access
+export PATH="$HOME/.npm-global/bin:$PATH"
+
 # Zoxide - smart cd
 if command -v zoxide &> /dev/null; then
   eval "$(zoxide init zsh)"
