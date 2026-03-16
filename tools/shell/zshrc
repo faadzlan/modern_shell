@@ -323,10 +323,15 @@ if [[ -n "$WSL_DISTRO_NAME" ]] || grep -q Microsoft /proc/version 2>/dev/null; t
   mountpoint -q /mnt/h 2>/dev/null || sudo mount -t drvfs H: /mnt/h
   mountpoint -q /mnt/g 2>/dev/null || sudo mount -t drvfs G: /mnt/g
   
-  # Start keychain SSH agent (--quiet suppresses banner, password prompt still works)
-  if command -v keychain &> /dev/null && [[ -f ~/.ssh/id_ed25519 ]]; then
-    eval $(keychain --eval --quiet ~/.ssh/id_ed25519)
-  fi
+fi
+
+# ----------------------------------------------------------------------------
+# 11a. SSH AGENT (Keychain) - Works on both Linux and WSL
+# ----------------------------------------------------------------------------
+
+# Start keychain SSH agent (--quiet suppresses banner, password prompt still works)
+if command -v keychain &> /dev/null && [[ -f ~/.ssh/id_ed25519 ]]; then
+  eval $(keychain --eval --quiet ~/.ssh/id_ed25519)
 fi
 
 # ----------------------------------------------------------------------------
