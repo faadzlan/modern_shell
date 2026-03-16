@@ -673,3 +673,43 @@ This means =/.zshrc.local= is automatically loaded on every shell start.
 | =zshrc.local.example= | Template for new machines | ✅ Yes |
 | =/.zshrc.local= | Your actual secrets (create this) | ❌ No |
 
+
+
+** [2026-03-16] Cross-Platform Keychain Support
+
+*** Context
+Cloned the project from GitHub (originally created on WSL) to a native Linux box. The keychain SSH agent was originally inside the WSL conditional block, so it wouldn't run on native Linux even if keychain was installed.
+
+*** Change Made
+Moved keychain block outside the WSL conditional in =tools/shell/zshrc=:
+
+*Before* (inside WSL block):
+#+begin_src zsh
+if [[ -n "$WSL_DISTRO_NAME" ]] || grep -q Microsoft /proc/version 2>/dev/null; then
+  # ... WSL stuff ...
+  if command -v keychain &> /dev/null && [[ -f ~/.ssh/id_ed25519 ]]; then
+    eval $(keychain --eval --quiet ~/.ssh/id_ed25519)
+  fi
+fi
+#+end_src
+
+*After* (separate section, runs everywhere):
+#+begin_src zsh
+# SSH AGENT (Keychain) - Works on both Linux and WSL
+if command -v keychain &> /dev/null && [[ -f ~/.ssh/id_ed25519 ]]; then
+  eval $(keychain --eval --quiet ~/.ssh/id_ed25519)
+fi
+#+end_src
+
+*** Why This Works on Both Platforms
+| Check | Purpose |
+|-------|---------|
+| =command -v keychain= | Only runs if keychain is installed |
+| =[[ -f ~/.ssh/id_ed25519 ]]= | Only runs if SSH key exists |
+| Both conditions | Safe on any system - silently skips if conditions not met |
+
+*** Backwards Compatibility
+✅ WSL machines: No change in behavior - keychain still works as before
+✅ Native Linux: Now gets keychain support if installed
+✅ Machines without keychain: Silently skipped, no errors
+
