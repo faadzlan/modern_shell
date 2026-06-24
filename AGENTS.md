@@ -196,13 +196,6 @@ mountpoint -q /mnt/h 2>/dev/null || sudo mount -t drvfs H: /mnt/h 2>/dev/null
 mountpoint -q /mnt/g 2>/dev/null || sudo mount -t drvfs G: /mnt/g 2>/dev/null
 ```
 
-**SSH Keychain** (caches SSH key password):
-```zsh
-if command -v keychain &> /dev/null; then
-  eval $(keychain --eval --quiet ~/.ssh/id_ed25519 2>/dev/null)
-fi
-```
-
 **WSL Aliases**:
 | Alias | Purpose |
 |-------|---------|
@@ -215,6 +208,27 @@ fi
 sudo visudo
 # Add: yourusername ALL=(ALL) NOPASSWD: /bin/mount
 ```
+
+### Cross-Platform SSH Keychain
+
+The zshrc includes SSH key caching with keychain on **both WSL and native Linux**:
+
+```zsh
+if command -v keychain &> /dev/null && [[ -f ~/.ssh/id_ed25519 ]]; then
+  eval $(keychain --eval --quiet ~/.ssh/id_ed25519)
+fi
+```
+
+**To use on any machine:**
+```bash
+sudo apt install keychain  # Install keychain
+# The zshrc will automatically enable SSH key caching on next shell start
+```
+
+**Benefits over basic `ssh-agent`:**
+- Shares one agent across all shell sessions
+- Remembers unlocked keys across logins (until reboot)
+- No orphan agent processes
 
 ### Color Scheme Philosophy
 - Use 256-color palette for broad compatibility

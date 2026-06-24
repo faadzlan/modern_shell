@@ -4,14 +4,14 @@ A PowerShell 7-like experience for Zsh using Zinit (fast, modern plugin manager)
 
 ## Features
 
-| PS7 Feature | Zsh Equivalent | Plugin |
-|-------------|----------------|--------|
-| Gray ghost text suggestions | Autosuggestions | zsh-autosuggestions |
-| Syntax highlighting | Real-time highlighting | fast-syntax-highlighting |
-| Enhanced Ctrl+R | Fuzzy history search | fzf |
-| ListView dropdown | FZF completion menu | fzf-tab |
-| MenuComplete | Visual tab completion | Built-in + fzf-tab |
-| Colorized output | ls colors, git status | eza, zsh-git-prompt |
+| PS7 Feature                 | Zsh Equivalent         | Plugin                   |
+|-----------------------------|------------------------|--------------------------|
+| Gray ghost text suggestions | Autosuggestions        | zsh-autosuggestions      |
+| Syntax highlighting         | Real-time highlighting | fast-syntax-highlighting |
+| Enhanced Ctrl+R             | Fuzzy history search   | fzf                      |
+| ListView dropdown           | FZF completion menu    | fzf-tab                  |
+| MenuComplete                | Visual tab completion  | Built-in + fzf-tab       |
+| Colorized output            | ls colors, git status  | eza, zsh-git-prompt      |
 
 ## Installation
 
@@ -49,7 +49,7 @@ bash -c "$(curl --fail --show-error --silent --location https://raw.githubuserco
 Copy the provided `.zshrc` to your home directory:
 
 ```bash
-cp /mnt/c/Users/faadz/Documents/whkd_setup/tools/shell/zshrc ~/.zshrc
+cp [path to modern_shell]/tools/shell/zshrc ~/.zshrc
 ```
 
 Restart your terminal or run `zsh`.
