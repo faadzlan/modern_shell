@@ -273,8 +273,11 @@ fi
 ZSH_CONFIG_DIR="${${(%):-%x}:A:h}"
 [[ -f "$ZSH_CONFIG_DIR/aliases.zsh" ]] && source "$ZSH_CONFIG_DIR/aliases.zsh"
 
+# Emacs: force X11 backend because WSLg Wayland makes it hang
+alias emacs='GDK_BACKEND=x11 WAYLAND_DISPLAY= emacs'
+
 # GUI App Launchers (run in background)
-emc() { emacs $1 & disown }
+emc() { GDK_BACKEND=x11 WAYLAND_DISPLAY= emacs $1 & disown }
 exp() { explorer.exe $1 & disown }
 nau() { nautilus $1 & disown }
 krp() { krop $1 & disown }
@@ -336,8 +339,21 @@ fi
 # To customize prompt, run p10k configure or edit ~/.p10k.zsh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
+# Re-enforce quiet instant prompt after ~/.p10k.zsh may have changed it.
+# External tools sourced in ~/.zshrc.local (OpenFOAM, keychain, etc.) can
+# produce console output during initialization; quiet keeps startup fast
+# without printing the p10k warning.
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+
 # ----------------------------------------------------------------------------
 # 13. LOCAL OVERRIDES
 # ----------------------------------------------------------------------------
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+# kimi-code
+export PATH="/home/adzlan/.kimi-code/bin:$PATH"
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/adzlan/.local/bin:$PATH"
