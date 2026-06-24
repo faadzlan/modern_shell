@@ -294,6 +294,23 @@ source /usr/share/doc/fzf/examples/key-bindings.zsh 2>/dev/null || true
 source /usr/share/doc/fzf/examples/completion.zsh 2>/dev/null || true
 ```
 
+### Issue: "Console output during zsh initialization detected"
+**Error**: Powerlevel10k warning about console output, followed by a command not found error
+**Cause**: Stray text or syntax errors in `~/.zshrc.local` (or any file sourced after instant prompt)
+**Common sources**:
+- Editor messages accidentally saved into the file
+- Copy-paste artifacts
+- Missing comment markers (`#`) on comment lines
+**Fix**:
+```bash
+# Check the first few lines of .zshrc.local
+head -5 ~/.zshrc.local
+
+# Validate syntax
+zsh -n ~/.zshrc.local
+```
+Remove any non-zsh text (editor messages, accidental pastes, etc.).
+
 ## Recommended zshrc Structure
 
 Based on installation experience, here's the reliable loading order:

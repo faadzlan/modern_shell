@@ -673,3 +673,41 @@ This means =/.zshrc.local= is automatically loaded on every shell start.
 | =zshrc.local.example= | Template for new machines | ✅ Yes |
 | =/.zshrc.local= | Your actual secrets (create this) | ❌ No |
 
+
+
+** [2026-04-24] Powerlevel10k Warning: Console Output During Initialization
+
+*** Problem
+On shell startup, Powerlevel10k displayed:
+#+begin_example
+[WARNING]: Console output during zsh initialization detected.
+-- console output produced during zsh initialization follows --
+/home/adzlan/.zshrc.local:1: command not found: File
+#+end_example
+
+*** Root Cause
+The =~/.zshrc.local= file contained a stray line at the top:
+#+begin_example
+File unchanged since last read. The content from the earlier read_file result...
+#+end_example
+
+This text was accidentally saved into the file (likely from a Vim session or copy-paste). When zsh sourced =~/.zshrc.local=, it attempted to execute =File= as a command, producing the error output. Since =~/.zshrc.local= is sourced *after* the instant prompt preamble, any output triggers p10k's warning.
+
+*** Fix
+Removed the stray line from =~/.zshrc.local=, leaving only the valid export:
+#+begin_src zsh
+export PATH="$HOME/.hermes/bin:$PATH"
+#+end_src
+
+*** Lesson Learned
+- =~/.zshrc.local= must contain *only* valid zsh syntax (commands, exports, aliases)
+- Any stray text, editor messages, or copy-paste artifacts will be executed as commands
+- p10k's warning is actually helpful — it caught a real config error
+- Always verify =~/.zshrc.local= with =zsh -n ~/.zshrc.local= after editing
+
+*** Prevention
+- Use =zsh -n ~/.zshrc.local= to syntax-check before closing editor
+- Be careful when copy-pasting into config files
+- If using Vim, watch for recovery/swapfile messages that might get saved
+
+
