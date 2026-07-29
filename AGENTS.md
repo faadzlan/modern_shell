@@ -325,6 +325,11 @@ zsh -n ~/.zshrc.local
 ```
 Remove any non-zsh text (editor messages, accidental pastes, etc.).
 
+### Issue: Two Emacs daemons running / `emc` opens nothing after `wsl --shutdown` (historical)
+**Symptom**: After a full WSL restart, opening a new shell printed a stray job-control line (`[2] <pid> ... done GDK_BACKEND=x11 ...emacs ...`). `htop` showed two `emacs --daemon` processes. Running `emc <file>` did nothing until both daemons were killed.
+**Cause**: zshrc used to eagerly spawn an `emacs --daemon` in the background on every shell startup (via a `flock`-guarded check-then-act block), before the sudo prompt for mounting the Google Drives and before starting the keychain SSH agent. Besides the job-control artifact printing on every new shell, this pre-spawned daemon could hold stale buffers open (e.g. an old `FLIGHT_LOG.org`), so later edits done outside that daemon appeared to "not persist".
+**Fix**: Removed the eager daemon spawn entirely. `emacs` is now a function: if `emacsclient` can reach a running server it attaches (new frame or reused frame); otherwise it just launches a plain `emacs` instance. Doom's own `server` use-package (`doom-editor.el`, `:after-call doom-first-input-hook doom-first-file-hook focus-out-hook`) starts the server itself ~1s after that first instance sees input/a file, so every subsequent `emacs`/`emc` call attaches to it — no daemon needs to exist before the first real invocation. `emc` is now just `alias emc=emacs`.
+
 ## Recommended zshrc Structure
 
 Based on installation experience, here's the reliable loading order:

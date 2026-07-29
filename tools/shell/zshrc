@@ -273,11 +273,26 @@ fi
 ZSH_CONFIG_DIR="${${(%):-%x}:A:h}"
 [[ -f "$ZSH_CONFIG_DIR/aliases.zsh" ]] && source "$ZSH_CONFIG_DIR/aliases.zsh"
 
-# Emacs: force X11 backend because WSLg Wayland makes it hang
-alias emacs='GDK_BACKEND=x11 WAYLAND_DISPLAY= emacs'
+# Emacs: force X11 backend because WSLg Wayland makes it hang.
+# No daemon is pre-spawned at shell startup: the first `emacs` invocation
+# just opens a plain instance, and Doom starts its own server ~1s after
+# first input/file (see doom-editor.el's `server` use-package), so every
+# later invocation attaches to that instance instead of spawning a new one.
+emacs() {
+  if emacsclient -e "(+ 1 1)" &>/dev/null; then
+    if [ "$(GDK_BACKEND=x11 WAYLAND_DISPLAY= emacsclient -e '(length (visible-frame-list))' 2>/dev/null)" -gt 0 ]; then
+      # Reuse existing frame so the file opens in the current Doom workspace
+      GDK_BACKEND=x11 WAYLAND_DISPLAY= emacsclient -n "$@"
+    else
+      GDK_BACKEND=x11 WAYLAND_DISPLAY= emacsclient -c -n "$@"
+    fi
+  else
+    GDK_BACKEND=x11 WAYLAND_DISPLAY= command emacs "$@" & disown
+  fi
+}
+alias emc=emacs
 
 # GUI App Launchers (run in background)
-emc() { GDK_BACKEND=x11 WAYLAND_DISPLAY= emacs $1 & disown }
 exp() { explorer.exe $1 & disown }
 nau() { nautilus $1 & disown }
 krp() { krop $1 & disown }
@@ -359,6 +374,8 @@ typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 # kimi-code
 export PATH="/home/adzlan/.kimi-code/bin:$PATH"
 
-
 # Added by Antigravity CLI installer
 export PATH="/home/adzlan/.local/bin:$PATH"
+
+# Doom Emacs CLI
+export PATH="/home/adzlan/.emacs.d/bin:$PATH"
