@@ -273,6 +273,24 @@ fi
 ZSH_CONFIG_DIR="${${(%):-%x}:A:h}"
 [[ -f "$ZSH_CONFIG_DIR/aliases.zsh" ]] && source "$ZSH_CONFIG_DIR/aliases.zsh"
 
+# Run Claude Code backed by Kimi (Moonshot) instead of the Claude subscription.
+# Scoped to this one invocation only via env-var prefixing — plain `claude` is
+# unaffected, so both can be used side by side without toggling anything.
+# See https://platform.kimi.ai/docs/guide/claude-code-kimi
+claude-kimi() {
+  ANTHROPIC_BASE_URL="https://api.moonshot.ai/anthropic" \
+  ANTHROPIC_AUTH_TOKEN="$KIMI_API_KEY" \
+  ANTHROPIC_MODEL="kimi-k3[1m]" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="kimi-k3[1m]" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="kimi-k3[1m]" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="kimi-k3[1m]" \
+  ANTHROPIC_DEFAULT_FABLE_MODEL="kimi-k3[1m]" \
+  CLAUDE_CODE_SUBAGENT_MODEL="kimi-k3[1m]" \
+  CLAUDE_CODE_AUTO_COMPACT_WINDOW="1048576" \
+  CLAUDE_CODE_EFFORT_LEVEL="max" \
+  claude "$@"
+}
+
 # Emacs: force X11 backend because WSLg Wayland makes it hang.
 # No daemon is pre-spawned at shell startup: the first `emacs` invocation
 # just opens a plain instance, and Doom starts its own server ~1s after
